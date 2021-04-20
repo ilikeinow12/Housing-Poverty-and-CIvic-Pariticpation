@@ -8,8 +8,9 @@
 # - 본 분석에서 이용된 데이터는 <서울시 복지실태조사(2018), 서울연구원>임.본래 논문에서는 2015년도 데이터를 사용했지만 2018년 데이터가 업로드되어 2018년 데이터로 재구성함. 
 # - 본래 논문의 목적은 여러 요인들을 통제한 후 주거빈곤과 지역사회참여율 간의 선형관계를 확인하는 것이나, 본 분석에서는 지역사회참여율과 다른 요인들 간의 상관관계를 살펴보는 것으로 한정함. 
 # 
-# ### 문제 제기
-# - 주거안정성과 개인의 사회참여, 정치참여 대한 한국적 맥락에서의 연구 부족. 
+# ### 문제 제기  
+# - 주거 문제를 한국에서는 개개인의 불평등 관점에서만 논하는 한계가 존재. 
+# - 주거안정성과 개인의 사회참여, 정치참여 대한 한국적 맥락에서의 연구 부족.  
 # - 특히 서울에 1인가구가 급증하는 상황에서 이 1인가구들의 주거안정성의 파생 결과에 대한 논의 부족.
 # 
 # ### 가설 설정
@@ -20,13 +21,17 @@
 # 1) Data importing : 서울연구원, 서울시복지싵태조사  
 # 2) Data Preprocessing : 분석에 필요한 컬럼들 생성  
 # 3) Data Description(Visualization) : 분석 대상인 설문 응답자들의 features를 시각화하여 응답자들의 특성 파악  
-# 4) Data Analysis : features간 상관관계 여부 확인, 유의미한 outliers 분석  
-# 5) Conclusion : 정책 방향성 제안 
+# 4) Data Analysis : features간 상관관계 여부 확인, 회귀 분석 진행  
+# 5) Conclusion : 분석 결과 정리
 # 
 # ### 분석 결론 
-# - 서울시민들의 지역사회에 대한 참여 자체가 낮기 때문에 본 데이터로 상관성을 발견하긴 힘들었음(원래의 논문에서는 회귀분석 결과 선형관계가 있는 것으로 드러남) 
-# - 다만 주거빈곤이 높음에도 높은 참여의향을 보이는 설문 응답자들이 존재하였음. 이들을 분석해 본 결과 공통적으로 이웃이나 가족 네트워크에 배태되어 있었음 
-# - 이는 서울시가 시민들간 연대의식을 개선하기 위해서는 정책의 방향성을 주거환경 개선과 이웃 네트워크의 회복에 두어야 함을 시사.
+# - 본 논문은 서울시를 대상으로 주거 빈곤, 주거 요인이 넓게는 지역 사회 통합을, 좁게는 시민들의 지역 사회 참여에 어떤 관계가 있는지 알아보고자 하였다.  
+# - 서울시 복지 실태 조사를 통해 주거 요인 - 주거 점유 형태, 거주 건물 유형, 주거 빈곤 지수(슈바베 지수)-와 가구 특성(1인가구, 다인가구, 그외)을 다른 인구, 사회경제적 요인과 회귀 분석한 결과, 주거 요인과 가구 특성은 통계적으로 유의한 영향을 미치는 것으로 나타났다.  
+# 구체적으로 다인가구는 1인가구에 비해 지역 사회에 참여 했을 확률이 높았고, 전월세는 자가에 비해 지역 사회에 참여 했을 확률이 낮았다. 한편 기타 유형은 자가에 비해 오히려 확률이 높았다. 다가구/다주택/오피스텔에 사는 사람들은 아파트에 사는 사람들에 비해 지역 사회에 참여 했을 확률이 낮았다.  
+#   
+# - 이는 곧 주거 문제를 단순히 개개인의 불평등 문제가 아니라 사회 통합의 문제에서도 바라보아야 한다는 점을 시사한다. 지금까지 주거 정책은 1가구 1주택 등의 슬로건과 함께 주거 문제를 재산권의 문제로만 인식하는 한계를 보여주고 있는데, 그 외에도 이웃간의 연대나 공동체 관점도 추가하여 재편해야 함을 논문을 통해 주장하는 바이다. 
+# 
+# --------------------------------------------------------------------------------------------------------
 
 # ## 1. Data Importing 
 # 
@@ -34,7 +39,7 @@
 # - 각 칼럼은 설문지의 문제 번호로 명시되어 있음. 각 컬럼의 내용은 서울복지실태조사 서베이 코드북을 통해 확인할 수 있음 
 # - 분석에 필요한 컬럼은 각 코드마다 주석처리로 달아놓았음 
 
-# In[1]:
+# In[2]:
 
 
 import pandas as pd
@@ -78,7 +83,7 @@ df.replace(998,'NaN', inplace=True)
 
 # ### [1] 설문응답자의 인구학적 특성 : 성별, 연령, 가구유형 
 
-# In[2]:
+# In[3]:
 
 
 ### 설문응답자의 인구학적 특성: 성별 
@@ -125,7 +130,7 @@ df['hh_type']=df.apply(householdtype, axis=1)
 
 # ### [2] 설문 응답자의 사회경제적 특성 : 교육수준, 월평균소득
 
-# In[3]:
+# In[4]:
 
 
 ### 설문응답자의 사회경제적 특성: 교육수준 
@@ -164,7 +169,7 @@ df['income']=df['income'].round() #반올림
 # >주1) 보증금은 주거비에 포함하지 않음. 이는 보증금을 포함할 경우 보증금 없는 월세 거주자가 보증금이 있는 월세 거주자보다 주거비 부담이 덜 느껴지는 것으로 나타날 소지가 있기 때문. 따라서 본 분석에서 주거비는 보증금을 제외한 월세와 관리비, 부채 한 달 이자를 포함함.  
 # >주2) 부채에 대한 한 달 이자는 가구의 총 부채에서 주거비가 1순위 ,2순위인 가구에 한정해 적용 
 
-# In[4]:
+# In[5]:
 
 
 ### 설문응답자의 주거 점유형태 
@@ -341,7 +346,7 @@ df['Schwabe']=df['Schwabe'].round(2)
 # - 추후 지역사회 참여의향 : 주민모임, 지역봉사활동, 마을공동체사업 (1~5점, 높을수록 자주참여함) 
 # 
 
-# In[5]:
+# In[6]:
 
 
 # D121 : 최근 1년 간 참여 경험_반상회, 주민회의, 부녀회, 아파트, 대표자 회의, 통반장 회의
@@ -374,36 +379,36 @@ df_final.drop(['interest','mon_pay','h_expense','mon_living_pay'], axis=1, inpla
 
 # ### 최종 테이블 -> db의 test table로 
 
-# In[7]:
+# In[ ]:
 
 
-q = '''
-    create table test (
-    ID int,
-    gender float,
-    age float,
-    hh_type int,
-    edu float,
-    income float,
-    occupation int,
-    building_type int, 
-    Schwabe float,
-    community_part float,
-    community_part_will float,
-    age_category char(20),
-    income_category char(100),
-    Schwabe_category char(100)
-);
-'''
-cursor.execute(q)
-conn.commit()
+# q = '''
+#     create table test (
+#     ID int,
+#     gender float,
+#     age float,
+#     hh_type int,
+#     edu float,
+#     income float,
+#     occupation int,
+#     building_type int, 
+#     Schwabe float,
+#     community_part float,
+#     community_part_will float,
+#     age_category char(20),
+#     income_category char(100),
+#     Schwabe_category char(100)
+# );
+# '''
+# cursor.execute(q)
+# conn.commit()
 
-# sqlalchemy를 이용해 db table(test)로 df_final 삽입. 
-from sqlalchemy import create_engine
-engine = create_engine('mysql+pymysql://root:j8477122@localhost/ssurvey')
-con = engine.connect()
+# # sqlalchemy를 이용해 db table(test)로 df_final 삽입. 
+# from sqlalchemy import create_engine
+# engine = create_engine('mysql+pymysql://root:j8477122@localhost/ssurvey')
+# con = engine.connect()
 
-df_final.to_sql(name='test', con=con, if_exists='append', index_label='ID')
+# df_final.to_sql(name='test', con=con, if_exists='append', index_label='ID')
 
 
 # ## 3. Data Description
@@ -412,7 +417,7 @@ df_final.to_sql(name='test', con=con, if_exists='append', index_label='ID')
 # - 설문 응답자는 여성이 남성보다 더 많았음 : 여성 약 80%, 남성 약 20%
 # - 이는 설문이 이루어지는 낮 시간에 여성이 남성보다 주로 더 집에 머물러 있음을 의미.
 
-# In[9]:
+# In[64]:
 
 
 #db의 test 테이블 -> df_final로 불러오기 
@@ -424,7 +429,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns 
 
 fig, ax= plt.subplots(1,1,figsize=(5,5))
-sns.countplot(data=df_final, x='gender', ax=ax)
+sns.countplot(data=df_final, x='gender', palette=["#538790", "#e59998"], ax=ax)
 ax.set_title('응답자의 성별분포', fontweight='bold')
 ax.set_xticklabels(['남성','여성'])
 plt.show()
@@ -434,7 +439,7 @@ plt.show()
 # - 설문 응답자의 연령층은 주로 3~60대를 형성. 
 # - 위의 성별 분포와 함께 보았을 때 이는 남성에 비해 상대적으로 여성의 경제활동참여가 낮다는 사실을 반영하는 것이기도 함.
 
-# In[10]:
+# In[67]:
 
 
 fig = plt.figure(figsize=(12,10))
@@ -446,7 +451,7 @@ ax1.set_title('응답자의 연령분포')
 
 bins=[0,20,31,41,51,61,71,81,100]  
 df_final['age_category']=pd.cut(df_final['age'], bins, labels=['10s','20s', '30s', '40s','50s','60s','70s', '80s+'])
-sns.countplot(data=df_final, x='age_category', ax=ax2, hue='gender')
+sns.countplot(data=df_final, x='age_category', ax=ax2, palette=["#538790", "#e59998"], hue='gender')
 ax2.set_title('응답자의 성별 연령분포')
 
 plt.show()
@@ -456,11 +461,11 @@ plt.show()
 # - 고졸 > 대학(4년제이상) > 대학(4년제미만) > 중졸 > 초졸 > 대학원(석사) > 무학 순임. 
 # - 응답자의 대다수가 베이비부머 세대 > 30대인 것과 일치하는 분포임. (베비이부머 세대는 대체로 고졸이 많으며 80년대에 태어난 지금의 30대는 한국 사회에서 가장 높은 교육수준을 보여주고 있음) 
 
-# In[11]:
+# In[70]:
 
 
 fig, ax= plt.subplots(1,1,figsize=(12,5))
-sns.countplot(data=df_final, x='edu', ax=ax)
+sns.countplot(data=df_final, x='edu',  ax=ax)
 ax.set_title('응답자의 교육수준')
 ax.set_xticklabels(['무학','초졸','중졸', '고졸', '대학(4년제미만)','대학(4년제이상)','대학원(석사)', '대학원(박사)'])
 plt.show()
@@ -472,7 +477,7 @@ plt.show()
 # - 가구유형별 소득분포를 보면 다인가구는 골고루 분포하고 있고 안정적인 소득을 가지고 있는 것으로 판단되는 반면, 1인가구는 100만원-300만원 미만에 주로 분포하고 있음. 연령별 분포에서 200만원-300만원 미만에 20대~30대 층이 많이 분포하고 있는 것으로 보아 100만원-300만원 미만에 속한 1인가구는 주로 청년층임을 추측할 수 있음. 또한 200만원 미만 소득구간에 속하는 1인가구도 연령별 소득분포로 봤을 때 노인 1인가구임을 추측할 수 있음. 
 # - 이러한 분포는 많은 1인가구들이 주로 낮은 소득으로 생활하고 있음을 시사.
 
-# In[12]:
+# In[73]:
 
 
 fig = plt.figure(figsize=(15,10))
@@ -486,7 +491,7 @@ ax1.set_title('응답자의 월평균 소득분포(지난해기준, 연령별)')
 ax1.set_xticklabels(['100만원미만','100~200만원미만', '200~300만원미만', '300~400만원미만', 
                      '400~500만원미만', '500~600만원미만', '600만원이상'])
 
-sns.countplot(data=df_final, x='income_category', ax=ax2, hue='hh_type')
+sns.countplot(data=df_final, x='income_category', palette =['#E59998', '#FAD8AA', '#538790'], ax=ax2, hue='hh_type')
 ax2.set_title('응답자의 월평균 소득분포(지난해기준, 가구유형별)')
 ax2.set_xticklabels(['100만원미만','100~200만원미만', '200~300만원미만', '300~400만원미만', 
                      '400~500만원미만', '500~600만원미만', '600만원이상'])
@@ -499,11 +504,11 @@ plt.show()
 # - 자가 > 전세 > 월세 > 기타 순 
 # - 1인 가구의 경우 전월세가 자가보다 많으며, 다인가구는 자가가 가장 많음. 
 
-# In[13]:
+# In[74]:
 
 
 fig, ax= plt.subplots(1,1,figsize=(7,5))
-sns.countplot(data=df_final, x='occupation', ax=ax, hue='hh_type')
+sns.countplot(data=df_final, x='occupation', palette =['#E59998', '#FAD8AA', '#538790'], ax=ax, hue='hh_type')
 ax.set_title('가구유형별 주거점유형태')
 ax.set_xticklabels(['자가', '전세', '월세', '기타'])
 plt.legend(labels=['1인가구', '다인가구', '그외'])
@@ -517,22 +522,22 @@ plt.show()
 # - 연령, 가구유형, 주거점유형태와 함께 종합해봤을 때 청년층, 노인층 1인가구가 전월세의 형태로 다세대/다가구/연립주택/오피스텔에 많이 거주하는 것으로 보임. 
 # - 청년 및 노인 1인가구의 소득수준이 높지 않다는 사실을 고려해보면 이들의 주거안정성이 낮다고 결론지을 수 있음.
 
-# In[14]:
+# In[75]:
 
 
 fig, ax1= plt.subplots(figsize=(12,5))
-sns.countplot(data=df_final, x='building_type', ax=ax1, hue='hh_type')
+sns.countplot(data=df_final, x='building_type',palette =['#E59998', '#FAD8AA', '#538790'], ax=ax1, hue='hh_type')
 ax1.set_title('설문응답자의 거주건물유형(가구유형별)')
 ax1.set_xticklabels(['아파트', '다세대/다가구/연립주택/오피스텔', '단독주택', '원룸', '기타'])
 plt.legend(labels=['1인가구', '다인가구', '그외'])
 plt.show()
 
 
-# In[15]:
+# In[76]:
 
 
 fig, ax2= plt.subplots(figsize=(12,5))
-sns.countplot(data=df_final, x='building_type', ax=ax2, hue='occupation')
+sns.countplot(data=df_final, x='building_type', palette =['#E59998', '#FAD8AA', '#538790', '#040404'], ax=ax2, hue='occupation')
 ax2.set_title('설문응답자의 거주건물유형(점유유형별)')
 ax2.set_xticklabels(['아파트', '다세대/다가구/연립주택/오피스텔', '단독주택', '원룸', '기타'])
 plt.legend(labels=['자가', '전세', '월세', '기타'])
@@ -548,14 +553,14 @@ plt.show()
 # - 가구유형별로 주거빈곤을 보면 다인가구는 대체로 주거빈곤이 낮으나 1인가구의 경우 주거빈곤이 낮은 경우와 높은 경우의 차이가 크지 않음. 
 # - 이는 앞서 1인가구의 주거안정성이 낮다는 사실과 같은 맥락임. 
 
-# In[16]:
+# In[78]:
 
 
 fig, ax=plt.subplots(figsize=(7,5))
 
 bins=[0,25,60,500]
 df_final['Schwabe_category']=pd.cut(df_final['Schwabe'], bins, labels=['25미만','25~60미만', '60이상'])
-sns.countplot(data=df_final, x='Schwabe_category', ax=ax, hue='hh_type') 
+sns.countplot(data=df_final, x='Schwabe_category',palette =['#E59998', '#FAD8AA', '#538790'], ax=ax, hue='hh_type') 
 ax.set_title("설문응답자의 주거빈곤율")
 plt.legend(['1인가구','다인가구', '기타'])
 plt.show()
@@ -568,7 +573,7 @@ plt.show()
 # - 설문응답자들의 지역사회참여는 대체로 낮음. 
 # - 지역사회참여와 참여의향간에는 선형관계가 존재하는 것으로 나타남
 
-# In[17]:
+# In[15]:
 
 
 fig=plt.figure(figsize=(15,5))
@@ -583,7 +588,7 @@ ax2.set_title("설문응답자의 추후 지역사회참여의향")
 plt.show()
 
 
-# In[18]:
+# In[16]:
 
 
 sns.regplot(data=df_final, x='community_part', y='community_part_will')
@@ -592,137 +597,108 @@ plt.show()
 
 
 # ## 4. Data Analysis
-# ### 1) 설문응답자의 인구/사회/경제/주거 특성 및 주거빈곤과 지역사회참여   
-# 1.지역사회참여경험      
-# - 지역사회참여경험과 참여의향 모두 그 수준 자체가 저조하기 때문에 인구/사회경제적 특성 및 주거요인과 두드러진 상관관계는 보이지 않음. 
-# - 다만 각 변수들마다 이상치가 존재하는데 이 이상치를 들여다보는 것이 유의미할 수도 있다는 판단.  
-# - 이상치 중에서 주목할 부분은 주거안정성이 낮은 1인가구 중 높은 참여의향을 보이는 경우임. 이 사례를 깊게 분석하면 지역사회참여에 영향을 미치는 또 다른 중요한 변수를 찾을 가능성이 존재한다고 판단됨. 주거정책은 장기전이므로 다른 변수를 찾아낸다면 지역사회참여 향상을 위한 별도의 방안을 생각해볼 수 있을 것이라 사료됨.
+# ### 1) 상관관계 분석   
+# 
+# - 상관관계 분석을 통해 주요 지표인 지역 사회 참여(community_part), 지역 사회 참여 의향(community_part_will)을 제외하고 다른 변수들 간 다중공선성을 확인해본 결과 변수들간 다중공선성은 약하다고 보임.  
+# - 따라서 따로 변수를 제거해 줄 필요 없이 그냥 진행하기로 함
 
-# In[19]:
-
-
-figure, ((ax1,ax2), (ax3, ax4), (ax5,ax6), (ax7, ax8))=plt.subplots(nrows=4, ncols=2,  figsize=(25,30))
-
-sns.boxplot(data=df_final, x='gender', y='community_part', ax=ax1)
-ax1.set_title("성별 지역사회참여", fontsize=20)
-ax1.set_xticklabels(['남성', '여성'])
-
-sns.boxplot(data=df_final, x='age_category', y='community_part', ax=ax2)
-ax2.set_title("연령별 지역사회참여", fontsize=20)
-
-sns.boxplot(data=df_final, x='hh_type', y='community_part', ax=ax3)
-ax3.set_title("가구유형별 지역사회참여", fontsize=20)
-ax3.set_xticklabels(['1인가구', '다인가구', '그외'])
-
-sns.boxplot(data=df_final, x='edu', y='community_part', ax=ax4)
-ax4.set_title("교육수준별 지역사회참여", fontsize=20)
-ax4.set_xticklabels(['무학', '초졸', '중졸','고졸', '대졸(4년제미만)', '대졸(4년제이상)', '대학원(석사)', '대학원(박사)'])
-
-sns.boxplot(data=df_final, x='income_category', y='community_part', ax=ax5)
-ax5.set_title("월평균 소득수준별 지역사회참여", fontsize=20)
-ax5.set_xticklabels(['100만원미만','1~200만원미만', '2~300만원미만', '3~400만원미만', 
-                     '4~500만원미만', '5~600만원미만', '600만원이상'], rotation=20)
-
-sns.boxplot(data=df_final, x='building_type', y='community_part', ax=ax6)
-ax6.set_title("거주건물유형별 지역사회참여", fontsize=20)
-ax6.set_xticklabels(['아파트', '다세대/다가구/연립주택/오피스텔', '단독주택', '원룸', '기타'])
-
-sns.boxplot(data=df_final, x='Schwabe_category', y='community_part', ax=ax7)
-ax7.set_title("주거빈곤율과 지역사회참여", fontsize=20)
+# In[59]:
 
 
-# In[20]:
+plt.rcParams['axes.unicode_minus'] = False
+
+corr=df_final.loc[:, 'gender':].corr()
+
+f, ax = plt.subplots(figsize=(10, 10))
+mask=np.triu(np.ones_like(corr, dtype=np.bool))
+cmap = sns.diverging_palette(220,10, as_cmap=True)
+
+ax = sns.heatmap(corr, cmap=cmap, annot=True, vmax=1, square=True, mask=mask, linewidth=.5)
+plt.show()
 
 
-figure, ((ax1,ax2), (ax3, ax4), (ax5,ax6), (ax7, ax8))=plt.subplots(nrows=4, ncols=2, figsize=(25,30))
+# ### 2) 회귀 분석   
+#   
+# 1차 분석 : 주거 요인 + 가구 특성 요인만 넣고 분석  
+# 2차 분석 : 주거 요인 + 가구 특성 요인 + 인구 사회경제적 요인 모두 넣고 분석
+# 
+# **<지역 사회 참여 경험>**  
+# - 주거 요인만 포함했을 때  
+# > 다인가구는 1인가구에 비해 지역 사회에 참여 했을 확률이 높았다.  
+# > 전월세는 자가에 비해 지역 사회에 참여 했을 확률이 낮았다. 한편 기타 유형은 자가에 비해 오히려 확률이 높았다. 
+# > 다가구/다주택/오피스텔에 사는 사람들은 아파트에 사는 사람들에 비해 지역 사회에 참여 했을 확률이 낮았다. 
+#   
+#     
+# - 주거 요인 + 인구, 사회경제적 요인까지 포함했을 때  
+# > 다인가구는 1인가구에 비해 지역 사회에 참여 했을 확률이 높았다.  
+# > 전월세는 자가에 비해 지역 사회에 참여 했을 확률이 낮았다. 한편 기타 유형은 자가에 비해 오히려 확률이 높았다. 
+# > 다가구/다주택/오피스텔에 사는 사람들은 아파트에 사는 사람들에 비해 지역 사회에 참여 했을 확률이 낮았다.  
+#   
+#   
+# - 정리하자면  
+# > 주거 요인은 전반적으로 지역사회 참여 경험에 유의한 영향을 미치는 것으로 나타났다.  
+#   
+#     
+# **<지역 사회 참여 의향>**  
+# - 주거 요인만 포함했을 때  
+# > 다인가구는 1인가구에 비해 지역 사회에 참여 했을 확률이 높았다.  
+# > 전월세는 자가에 비해 지역 사회에 참여 했을 확률이 낮았다. 한편 기타 유형은 자가에 비해 오히려 확률이 높았다. 
+# > 다가구/다주택/오피스텔에 사는 사람들은 아파트에 사는 사람들에 비해 지역 사회에 참여 했을 확률이 낮았다.  
+#   
+#     
+# - 주거 요인 + 인구, 사회경제적 요인까지 포함했을 때  
+# > 다인가구는 1인가구에 비해 지역 사회에 참여 했을 확률이 높았다.  
+# > 전월세는 자가에 비해 지역 사회에 참여 했을 확률이 낮았다. 한편 기타 유형은 자가에 비해 오히려 확률이 높았다. 
+# > 다가구/다주택/오피스텔에 사는 사람들은 아파트에 사는 사람들에 비해 지역 사회에 참여 했을 확률이 낮았다.  
+#   
+#   
+# - 정리하자면  
+# > 주거 요인은 전반적으로 지역사회 참여 의향에 유의한 영향을 미치는 것으로 나타났다.  
+# 
 
-sns.boxplot(data=df_final, x='gender', y='community_part_will', ax=ax1)
-ax1.set_title("성별 지역사회참여의향", fontsize=20)
-ax1.set_xticklabels(['남성', '여성'])
-
-sns.boxplot(data=df_final, x='age_category', y='community_part_will', ax=ax2)
-ax2.set_title("연령별 지역사회참여의향", fontsize=20)
-
-sns.boxplot(data=df_final, x='hh_type', y='community_part_will', ax=ax3)
-ax3.set_title("가구유형별 지역사회참여의향", fontsize=20)
-ax3.set_xticklabels(['1인가구', '다인가구', '그외'])
-
-sns.boxplot(data=df_final, x='edu', y='community_part_will', ax=ax4)
-ax4.set_title("교육수준별 지역사회참여의향", fontsize=20)
-ax4.set_xticklabels(['무학', '초졸', '중졸','고졸', '대졸(4년제미만)', '대졸(4년제이상)', '대학원(석사)', '대학원(박사)'])
-
-sns.boxplot(data=df_final, x='income_category', y='community_part_will', ax=ax5)
-ax5.set_title("월평균 소득수준별 지역사회참여의향", fontsize=20)
-ax5.set_xticklabels(['100만원미만','1~200만원미만', '2~300만원미만', '3~400만원미만', 
-                     '4~500만원미만', '5~600만원미만', '600만원이상'], rotation=20)
-
-sns.boxplot(data=df_final, x='building_type', y='community_part_will', ax=ax6)
-ax6.set_title("거주건물유형별 지역사회참여의향", fontsize=20)
-ax6.set_xticklabels(['아파트', '다세대/다가구/연립주택/오피스텔', '단독주택', '원룸', '기타'])
-
-sns.boxplot(data=df_final, x='Schwabe_category', y='community_part_will', ax=ax7)
-ax7.set_title("주거빈곤율과 지역사회참여의향", fontsize=20)
-
-
-# ### 2) 이상치값 분석 
-# - 주거빈곤이 높음에도 높은 사회참여의향을 보이는 이상치를 분석 
-# - 분석 결과 다음과 같은 인구사회경제학적 특징을 가짐 :  
-# > A(ID=1179) : 60대, 고졸, 1인가구, 소득수준 100-200미만, 연립주택에서 월세로 거주  
-# > B(ID=3156) : 50대, 전문대졸, 1인가구, 소득수준 100~200미만, 연립주택에서 월세로 거주  
-# - 주거빈곤은 B보다 A가 높으나 둘 모두 주거빈곤을 겪고있는 상태임은 동일함  
-# - A, B는 인구사회경제학적 특징이 크게 차이나지 않는 것으로 판단됨. 또한 지역사회에 추후 참여할 의향은 둘 모두 3점 이상으로 적극적인 것으로 판단됨. 
-
-# In[21]:
-
-
-outlier_1= df_final[(df_final.income<300)&(df_final.hh_type==1)&(df_final.Schwabe>=25)
-                    &(df_final.community_part_will>3)]
-outlier_1
+# In[48]:
 
 
-# ### 인구사회경제학적 특징 이외 A,B는 다음과 같은 공통된 특징을 가짐 :
-# > 경제활동에 참여하고 있음  
-# > 여가활동을 함께하는 사람이 존재함  
-# > 정부나 서울시에서 중장년층을 위해 제공하는 일자리 서비스를 잘 알고 있고 적어도 한 개는 이용해 본적이 있음 
+from statsmodels.formula.api import ols
+# 지역 사회 참여 경험 회귀 분석 
+# 가구 특성, 주거 요인만 포함했을 때 
+fit = ols('community_part ~ C(hh_type) +C(occupation) +C(building_type) +Schwabe', data=df_final).fit()
+fit.summary()
 
-# In[42]:
+
+# In[49]:
 
 
-temp= df.loc[[1179, 3156],['E33', 'B011', 'B013', 'B014', 'D11', 'E051','E05101', 'E05102', 'E05103','E05104',
-                     'E052', 'E05201', 'E05202', 'E05203','E05204']]
+#가구 특성, 주거 요인 +인구 사회경제학적 요인까지 포함 
+fit = ols('community_part ~ C(gender) +age +C(hh_type) +C(edu) +income +C(occupation) +C(building_type) +Schwabe', data=df_final).fit()
+fit.summary()
 
-temp.rename(columns={'E33':'혼자 사는 것에 대한 만족감', #2=별로 만족하지 않음, 3=보통
-            'B011': '근로능력',        #2=단순근로가능(집에서 돈벌이 하는 정도)
-            'B013': '경제활동참여 상태', #1=상용직, 3=일용직
-            'B014':'직종',            #5=판매직, 8=단순노무직
-            'D11':'여가활동 함께하는 사람', #2=이웃, 5=가족/친척
-            'E051': '공공근로 인지도',
-             ## 정부 및 서울시에서 제공하는 고용지원서비스에 대한 인식 
-             # 1~4점, 높을수록 잘 알고 있음 
-            'E05101':'자활지원사업 인지도', 
-            'E05102':'어르신사회활동지원사업 인지도',
-            'E05103': '50+세대를위한 보람일자리 인지도',
-            'E05104': '서울시 뉴딜일자리 인지도',
-             ## 정부 및 서울시에서 제공하는 고용지원서비스에 대한 이용경험
-             # 1= 현재 이용하고 있음, 2=과거에 이용해보았음, 3=없음 
-            'E052': '공공근로 참여경험',
-            'E05201':'자활지원사업 참여경험', 
-            'E05202': '어르신사회활동지원사업 참여경험', 
-            'E05203': '50+세대를위한 보람일자리 참여경험',
-            'E05204': '서울시 뉴딜일자리 참여경험'}
-           , inplace=True)
 
-temp
+# In[60]:
+
+
+#지역 사회 참여 의향 회귀 분석 
+#가구 특성, 주거 요인만 포함 
+fit = ols('community_part_will ~ C(hh_type) +C(occupation) +C(building_type) +Schwabe', data=df_final).fit()
+fit.summary()
+
+
+# In[61]:
+
+
+#가구 특성, 주거 요인 +인구 사회경제학적 요인까지 포함 
+fit = ols('community_part ~ C(gender) +age +C(hh_type) +C(edu) +income +C(occupation) +C(building_type) +Schwabe', data=df_final).fit()
+fit.summary()
 
 
 # ## 5. Conclusion 
-# - 서울시의 복지실태조사의 설문응답자들은 지역사회 참여와 참여의향이 대체로 낮은 이유로    본 데이터를 통해서는 응답자들의 여러 특성과 지역사회참여정도에 대해 큰 상관관계를 발견하기 어려웠음
-# - 다만 주거빈곤을 겪고 있음에도 추후에 지역사회 참여의향이 높은 응답자들이 있었음
-# - 이 응답자들을 살펴보니 공통적으로 타인과의 네트워크를 유지하고 있었음     즉 직장을 다니고 있었고, 여가 활동을 함께하는 이웃이나 가족이 있는 등 1인가구 임에도 고립된 생활을 하고 있지 않았음.
-# - 또한 정부나 서울시에서 지원하고 있는 고용서비스에 대해서 잘 알고 있었고 이용해본 경험도 있었음. 이러한 정부 지원 서비스를 통해 이들은 가족, 직장동료, 이웃 이외 또다른 네트워크에 배태되어 있을 것이라 생각됨
-# - 이는 서울시가 앞으로 시민들, 특히 급증하는 1인가구들이 지역 공동체에 관심을 가지도록 유도하기 위해서는 주거빈곤을 해결하는 노력과 함께 공동체 네트워크를 회복시키는 노력 또한 함께 병행해야 함을 시사 
+# - 본 논문은 서울시를 대상으로 주거 빈곤, 주거 요인이 넓게는 지역 사회 통합을, 좁게는 시민들의 지역 사회 참여에 어떤 관계가 있는지 알아보고자 하였다.  
+# - 서울시 복지 실태 조사를 통해 주거 요인 - 주거 점유 형태, 거주 건물 유형, 주거 빈곤 지수(슈바베 지수)-와 가구 특성(1인가구, 다인가구, 그외)을 다른 인구, 사회경제적 요인과 회귀 분석한 결과, 주거 요인과 가구 특성은 통계적으로 유의한 영향을 미치는 것으로 나타났다.  
+# 구체적으로 다인가구는 1인가구에 비해 지역 사회에 참여 했을 확률이 높았고, 전월세는 자가에 비해 지역 사회에 참여 했을 확률이 낮았다. 한편 기타 유형은 자가에 비해 오히려 확률이 높았다. 다가구/다주택/오피스텔에 사는 사람들은 아파트에 사는 사람들에 비해 지역 사회에 참여 했을 확률이 낮았다.  
+#   
+# - 이는 곧 주거 문제를 단순히 개개인의 불평등 문제가 아니라 사회 통합의 문제에서도 바라보아야 한다는 점을 시사한다. 지금까지 주거 정책은 1가구 1주택 등의 슬로건과 함께 주거 문제를 재산권의 문제로만 인식하는 한계를 보여주고 있는데, 그 외에도 이웃간의 연대나 공동체 관점도 추가하여 재편해야 함을 논문을 통해 주장하는 바이다. 
 
-# In[43]:
+# In[ ]:
 
 
 conn.close()
